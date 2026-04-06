@@ -15,6 +15,17 @@ def ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+def matches_purpose(dataset_purpose: str, selected_purposes: set[str]) -> bool:
+    if not selected_purposes:
+        return True
+    lowered = dataset_purpose.lower()
+    for purpose in selected_purposes:
+        selected = purpose.lower()
+        if lowered == selected or lowered.startswith(f"{selected}_"):
+            return True
+    return False
+
+
 def download_dataset(api: KaggleApi, slug: str, target_dir: Path, force: bool) -> None:
     ensure_dir(target_dir)
     if force and target_dir.exists():
@@ -37,11 +48,19 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="configs/kaggle_datasets.yaml")
     parser.add_argument("--only", nargs="*", default=[])
+    parser.add_argument("--purpose", nargs="*", default=[])
+    parser.add_argument("--list", action="store_true")
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
 
     config = load_config(Path(args.config))
     selected = set(args.only)
+    selected_purposes = set(args.purpose)
+
+    if args.list:
+        for dataset in config.get("datasets", []):
+            print(f"{dataset['slug']} | {dataset['purpose']} | {dataset['target_dir']}")
+        return
 
     api = KaggleApi()
     api.authenticate()
@@ -50,8 +69,10 @@ def main() -> None:
         slug = dataset["slug"]
         if selected and slug not in selected:
             continue
+        if not matches_purpose(dataset["purpose"], selected_purposes):
+            continue
         target_dir = Path(dataset["target_dir"])
-        print(f"Downloading {slug} -> {target_dir}")
+        print(f"Downloading {slug} [{dataset['purpose']}] -> {target_dir}")
         download_dataset(api, slug, target_dir, args.force)
 
 
