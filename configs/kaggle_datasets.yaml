@@ -1,10 +1,10 @@
 datasets:
   - slug: bomaich/vnlicenseplate
-    target_dir: data/raw/vnlicenseplate
+    target_dir: /content/doannganh/data/raw/vnlicenseplate
     purpose: detection_vietnam
   - slug: topkek69/vietnamese-license-plate-ocr
-    target_dir: data/raw/vietnamese-license-plate-ocr
+    target_dir: /content/doannganh/data/raw/vietnamese-license-plate-ocr
     purpose: ocr_vietnam
   - slug: andrewmvd/car-plate-detection
-    target_dir: data/raw/car-plate-detection
+    target_dir: /content/doannganh/data/raw/car-plate-detection
     purpose: detection_general
