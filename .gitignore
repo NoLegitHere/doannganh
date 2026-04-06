@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+outputs/
+data/raw/
+data/processed/
+models/*.pt
+models/*.onnx
+.streamlit/secrets.toml
