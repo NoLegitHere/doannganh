@@ -70,6 +70,52 @@ def voc_to_yolo_line(label: tuple[str, int, int, int, int], width: int, height: 
     return f"0 {x_center:.6f} {y_center:.6f} {box_width:.6f} {box_height:.6f}"
 
 
+def convert_yolo_values_to_box(values: list[float]) -> tuple[float, float, float, float] | None:
+    if len(values) == 4:
+        x_center, y_center, box_width, box_height = values
+        return x_center, y_center, box_width, box_height
+    if len(values) >= 6 and len(values) % 2 == 0:
+        xs = values[0::2]
+        ys = values[1::2]
+        xmin = min(xs)
+        xmax = max(xs)
+        ymin = min(ys)
+        ymax = max(ys)
+        x_center = (xmin + xmax) / 2
+        y_center = (ymin + ymax) / 2
+        box_width = xmax - xmin
+        box_height = ymax - ymin
+        return x_center, y_center, box_width, box_height
+    return None
+
+
+def normalize_yolo_label_file(label_path: Path) -> tuple[list[str], int]:
+    normalized_lines: list[str] = []
+    converted_segments = 0
+    for raw_line in label_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        parts = line.split()
+        if len(parts) < 5:
+            continue
+        class_id = parts[0]
+        try:
+            values = [float(value) for value in parts[1:]]
+        except ValueError:
+            continue
+        box = convert_yolo_values_to_box(values)
+        if box is None:
+            continue
+        if len(values) != 4:
+            converted_segments += 1
+        x_center, y_center, box_width, box_height = box
+        normalized_lines.append(
+            f"{class_id} {x_center:.6f} {y_center:.6f} {box_width:.6f} {box_height:.6f}"
+        )
+    return normalized_lines, converted_segments
+
+
 def score_label_candidate(label_path: Path) -> tuple[int, int, str]:
     parts = {part.lower() for part in label_path.parts}
     preferred_dir_score = 0
@@ -140,6 +186,7 @@ def main() -> None:
 
     kept = 0
     skipped = 0
+    converted_segments = 0
     missing_examples: list[str] = []
 
     for index, image_path in enumerate(image_paths):
@@ -159,7 +206,14 @@ def main() -> None:
 
         label_type, label_path = label_info
         if label_type == "yolo":
-            shutil.copy2(label_path, target_label)
+            lines, converted_count = normalize_yolo_label_file(label_path)
+            if not lines:
+                target_image.unlink(missing_ok=True)
+                target_label.unlink(missing_ok=True)
+                skipped += 1
+                continue
+            converted_segments += converted_count
+            target_label.write_text("\n".join(lines), encoding="utf-8")
         else:
             image = cv2.imread(str(image_path))
             if image is None:
@@ -182,6 +236,8 @@ def main() -> None:
 
     print(f"Prepared {kept} labeled images. Skipped {skipped} unlabeled/invalid images.")
     print(f"Output dataset: {output_root}")
+    if converted_segments:
+        print(f"Converted {converted_segments} YOLO segment annotations to detection boxes.")
     if kept == 0 and missing_examples:
         print("No labels were matched. Example images without resolved labels:")
         for example in missing_examples:
