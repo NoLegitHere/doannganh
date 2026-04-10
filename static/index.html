@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra Cứu Biển Số Trực Tuyến</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Trích Xuất Biển Số</h1>
+        </header>
+
+        <main>
+            <!-- Upload Area -->
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" accept="image/*" hidden>
+                <div class="upload-content">
+                    <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span class="upload-text">Kéo & thả ảnh vào đây hoặc <span class="highlight">duyệt thư
+                            mục</span></span>
+                </div>
+                <!-- Loading State -->
+                <div class="loading-state hidden" id="loadingState">
+                    <div class="spinner"></div>
+                    <span>Đang phân tích biển số...</span>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-container hidden" id="resultsContainer"></div>
+
+        </main>
+
+        <footer>
+            <button id="resetBtn" class="reset-btn hidden">Phân Tích Ảnh Khác</button>
+        </footer>
+    </div>
+
+    <!-- Template for a single plate result -->
+    <template id="resultTemplate">
+        <div class="result-card">
+            <div class="plate-number" data-target="plate">--</div>
+            <div class="city-details">
+                <div class="city-group">
+                    <span class="label">Tỉnh/Thành Hiện Tại</span>
+                    <span class="value" data-target="city">--</span>
+                </div>
+                <div class="city-group">
+                    <span class="label">Tỉnh/Thành Cũ</span>
+                    <span class="value" data-target="old_city">--</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

@@ -3,9 +3,10 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import torch
 from ultralytics import YOLO
 
-from app.core.settings import settings
+from app.core.settings import PROJECT_ROOT, settings
 
 
 @dataclass
@@ -17,16 +18,60 @@ class Detection:
 
 class LicensePlateDetector:
     def __init__(self, model_path: str | None = None):
-        self.model_path = model_path or settings.detection_model_path
-        self.model = self._load_model(self.model_path)
+        self.requested_model_path = Path(model_path or settings.detection_model_path)
+        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        self.model_path = self._resolve_model_path()
+        self.model = self._load_model(self.model_path) if self.model_path is not None else None
 
-    def _load_model(self, model_path: str):
-        model_file = Path(model_path)
-        if model_file.exists():
-            return YOLO(model_path)
+    def _candidate_model_paths(self) -> list[Path]:
+        requested = self.requested_model_path
+        if not requested.is_absolute():
+            requested = PROJECT_ROOT / requested
+
+        candidates = [
+            requested,
+            PROJECT_ROOT / "models" / "license_plate_detector.pt",
+            PROJECT_ROOT / "outputs" / "train" / "license_plate_detector" / "weights" / "best.pt",
+            PROJECT_ROOT / "runs" / "detect" / "outputs" / "train" / "license_plate_detector" / "weights" / "best.pt",
+            PROJECT_ROOT / "runs" / "detect" / "train" / "weights" / "best.pt",
+        ]
+
+        unique_candidates: list[Path] = []
+        seen: set[str] = set()
+        for candidate in candidates:
+            key = str(candidate.resolve()) if candidate.exists() else str(candidate)
+            if key not in seen:
+                seen.add(key)
+                unique_candidates.append(candidate)
+        return unique_candidates
+
+    def _resolve_model_path(self) -> Path | None:
+        for candidate in self._candidate_model_paths():
+            if candidate.exists():
+                return candidate
         return None
 
+    def _load_model(self, model_path: Path):
+        if model_path.exists():
+            return YOLO(str(model_path))
+        return None
+
+    def _ensure_model_loaded(self) -> None:
+        resolved_path = self._resolve_model_path()
+        if resolved_path is None:
+            return
+        if self.model is None or self.model_path != resolved_path:
+            self.model_path = resolved_path
+            self.model = self._load_model(resolved_path)
+
+    @property
+    def active_model_path(self) -> str:
+        if self.model_path is None:
+            return ""
+        return str(self.model_path)
+
     def detect(self, image: np.ndarray) -> list[Detection]:
+        self._ensure_model_loaded()
         if self.model is not None:
             detections = self._detect_with_yolo(image)
             if detections:
@@ -34,7 +79,7 @@ class LicensePlateDetector:
         return self._detect_with_opencv(image)
 
     def _detect_with_yolo(self, image: np.ndarray) -> list[Detection]:
-        results = self.model.predict(source=image, verbose=False)
+        results = self.model.predict(source=image, verbose=False, device=self.device)
         detections: list[Detection] = []
         for result in results:
             if result.boxes is None:

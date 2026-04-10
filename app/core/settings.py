@@ -4,6 +4,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ENV_FILE = PROJECT_ROOT / ".env"
+ENV_EXAMPLE_FILE = PROJECT_ROOT / ".env.example"
+ACTIVE_ENV_FILE = ENV_FILE if ENV_FILE.exists() else ENV_EXAMPLE_FILE
 
 
 class Settings(BaseSettings):
@@ -21,7 +24,7 @@ class Settings(BaseSettings):
     api_port: int = 8000
 
     model_config = SettingsConfigDict(
-        env_file=str(PROJECT_ROOT / ".env"),
+        env_file=str(ACTIVE_ENV_FILE),
         env_file_encoding="utf-8",
         extra="ignore",
     )

@@ -1,25 +1,25 @@
 datasets:
   - slug: bomaich/vnlicenseplate
-    target_dir: /content/doannganh/data/raw/vnlicenseplate
+    target_dir: data/raw/vnlicenseplate
     purpose: detection_vietnam
   - slug: topkek69/vietnamese-license-plate-ocr
-    target_dir: /content/doannganh/data/raw/vietnamese-license-plate-ocr
+    target_dir: data/raw/vietnamese-license-plate-ocr
     purpose: ocr_vietnam
   - slug: duydieunguyen/licenseplates
-    target_dir: /content/doannganh/data/raw/licenseplates-segment-vn
+    target_dir: data/raw/licenseplates-segment-vn
     purpose: ocr_vietnam
   - slug: andrewmvd/car-plate-detection
-    target_dir: /content/doannganh/data/raw/car-plate-detection
+    target_dir: data/raw/car-plate-detection
     purpose: detection_general
   - slug: aslanahmedov/number-plate-detection
-    target_dir: /content/doannganh/data/raw/number-plate-detection
+    target_dir: data/raw/number-plate-detection
     purpose: detection_general
   - slug: fareselmenshawii/license-plate-dataset
-    target_dir: /content/doannganh/data/raw/license-plate-dataset
+    target_dir: data/raw/license-plate-dataset
     purpose: detection_general
   - slug: fareselmenshawii/large-license-plate-dataset
-    target_dir: /content/doannganh/data/raw/large-license-plate-dataset
+    target_dir: data/raw/large-license-plate-dataset
     purpose: detection_general
   - slug: adilshamim8/license-plate-recognition
-    target_dir: /content/doannganh/data/raw/license-plate-recognition
+    target_dir: data/raw/license-plate-recognition
     purpose: recognition_general
